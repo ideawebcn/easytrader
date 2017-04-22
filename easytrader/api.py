@@ -9,6 +9,7 @@ from .xq_follower import XueQiuFollower
 from .xqtrader import XueQiuTrader
 from .yhtrader import YHTrader
 from .xczqtrader import XCZQTrader
+from .gftrader2 import GFTrader2
 
 
 def use(broker, debug=True, **kwargs):
@@ -37,6 +38,8 @@ def use(broker, debug=True, **kwargs):
         return YHClientTrader()
     elif broker.lower() in ['xczq', '湘财证券']:
         return XCZQTrader()
+    elif broker.lower() in ['gf2', '广发2']:
+        return GFTrader2()
 
 
 def follower(platform, **kwargs):
