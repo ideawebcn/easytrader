@@ -1,9 +1,8 @@
 # coding: utf-8
 import json
+
 import os
-
 import requests
-
 from . import helpers
 from .webtrader import WebTrader
 
@@ -12,55 +11,36 @@ class GFTrader2(WebTrader):
     config_path = os.path.dirname(__file__) + '/config/gf2.json'
 
     def __init__(self, debug=True):
-        super(GFTrader, self).__init__(debug=debug)
+        super(GFTrader2, self).__init__(debug=debug)
         self.cookie = None
         self.account_config = None
         self.s = None
+        self.client = requests.session()
         self.exchange_stock_account = dict()
-        self.sessionid = ''
-        self.holdername = list()
+        self.config = helpers.file2dict(self.config_path)
 
-    def _prepare_account(self, user, password, **kwargs):
-        self.account_config = {
-            port: "3000"
-        }
-        pass
+    def _request(self, method, params=None):
+        content = self.client.request('GET', self.config['server'] + '/' + method, params)
+        if content.status_code == 200:
+            print('error http code:%s' % content.status_code)
+        # @todo 异常处理
+        return json.loads(content.text)
 
     def login(self, throw=False):
-        
-        pass
-
-    def create_basic_params(self):
-        basic_params = dict(
-            dse_sessionId=self.sessionid
-        )
-        return basic_params
-
-    def request(self, params):
-        # todo
-        pass
-
-    def format_response_data(self, data):
-        pass
-
-    def check_login_status(self, response):
-        # todo
-        pass
-
-    def check_account_live(self, response):
-        # todo
-        pass
+        print('login')
+        return
 
     def buy(self, stock_code, price, amount=0, volume=0, entrust_prop=0):
-        """买入
-        :param stock_code: 股票代码
-        :param price: 买入价格
-        :param amount: 买入股数
-        :param volume: 买入总金额 由 volume / price 取 100 的整数， 若指定 amount 则此参数无效
-        :param entrust_prop: 委托类型，暂未实现，默认为限价委托
-        """
-       # todo
-       pass
+        # :param stock_code: 股票代码
+        # :param price: 买入价格
+        # :param amount: 买入股数
+        # :param volume: 买入总金额 由 volume / price 取 100 的整数， 若指定 amount 则此参数无效
+        # :param entrust_prop: 委托类型，暂未实现，默认为限价委托
+        return self._request('buy', {
+            'code': stock_code,
+            'price': price,
+            'amount': amount
+        })
 
     def sell(self, stock_code, price, amount=0, volume=0, entrust_prop=0):
         """卖出
@@ -70,34 +50,26 @@ class GFTrader2(WebTrader):
         :param volume: 卖出总金额 由 volume / price 取整， 若指定 amount 则此参数无效
         :param entrust_prop: 委托类型，暂未实现，默认为限价委托
         """
-        # todo
-        pass
+        return self._request('sell', {
+            'code': stock_code,
+            'price': price,
+            'amount': amount
+        })
+
+    def get_balance(self):
+        """获取账户资金状况"""
+        return self._request('balance')
 
     def cancel_entrust(self, entrust_no):
-        """撤单
-        :param entrust_no: 委单号"""
-        # todo
-       pass
+        # 撤单
+        # :param entrust_no: 委单号
+        return self._request('sell', {
+            'id': entrust_no
+        })
 
-    @property
     def get_position(self):
-        # todo
         """获取持仓"""
-        pass
-    def exchangebill(self):
-        pass
-
-    def get_exchangebill(self, start_date, end_date):
-        pass
-
-    @property
-    def exit(self):
-        '''
-        退出系统
-        :return:
-        '''
-        # todo
-        pass
+        return self._request('position')
 
     def get_entrust(self, action_in=1):
         '''
@@ -105,5 +77,4 @@ class GFTrader2(WebTrader):
         :param action_in: 当值为0，返回全部委托；当值为1时，返回可撤委托
         :return:
         '''
-        # todo
-        pass
+        return self._request('pending')
